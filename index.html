@@ -24,8 +24,12 @@
             width: 90%;
         }
         h1 {
-            color: #333;
-            margin-bottom: 30px;
+    margin-bottom: 30px;
+    padding: 0;
+        }
+        h1 img {
+    max-width: 100%;
+    height: auto;
         }
         .button {
             background-color: #ff4d4d;
@@ -85,7 +89,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>ESP32 Control</h1>
+        <h1><img src="https://sedulitas.com/wp-content/uploads/2019/09/Sedulitas_logo.png" alt="Sedulitas - People | Passion | Precision" style="max-width: 100%; height: auto;"></h1>
         <button class="button" id="fanButton">Fan</button>
         <button class="button" id="cleaningButton">Cleaning/Dust</button>
         <div class="slider-container">
@@ -97,8 +101,29 @@
     <script>
         const slider = document.getElementById("myRange");
         const output = document.getElementById("sliderValue");
+        const fanButton = document.getElementById("fanButton");
+        const cleaningButton = document.getElementById("cleaningButton");
+        
+        // Replace with your ESP32's IP address
+        const esp32Address = "http://192.168.1.100";
+
         slider.oninput = function() {
             output.innerHTML = this.value;
+            fetch(`${esp32Address}/slider?value=${this.value}`)
+                .then(response => console.log('Slider value sent'))
+                .catch(error => console.error('Error:', error));
+        }
+
+        fanButton.onclick = function() {
+            fetch(`${esp32Address}/fan`)
+                .then(response => console.log('Fan toggled'))
+                .catch(error => console.error('Error:', error));
+        }
+
+        cleaningButton.onclick = function() {
+            fetch(`${esp32Address}/cleaning`)
+                .then(response => console.log('Cleaning toggled'))
+                .catch(error => console.error('Error:', error));
         }
     </script>
 </body>
