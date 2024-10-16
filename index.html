@@ -7,63 +7,93 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
         }
+
         .container {
-            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+            background-color: white;
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             text-align: center;
-            max-width: 400px;
+            max-width: 600px;
             width: 90%;
         }
-        h1 {
-    margin-bottom: 30px;
-    padding: 0;
+
+        .logo {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 30px;
         }
-        h1 img {
-    max-width: 100%;
-    height: auto;
+
+        .button-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
         }
+
         .button {
-            background-color: #ff4d4d;
-            color: white;
             border: none;
-            padding: 15px 30px;
-            margin: 10px;
-            border-radius: 50px;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
             cursor: pointer;
-            font-size: 18px;
+            border-radius: 12px;
             transition: all 0.3s ease;
-            width: 80%;
         }
+
         .button:hover {
-            background-color: #ff3333;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 10px rgba(255,77,77,0.2);
+            transform: scale(1.05);
         }
+
+        #fanButton.on {
+            background-color: #4CAF50;
+        }
+
+        #fanButton.off {
+            background-color: #ff4d4d;
+        }
+
+        #cleaningDustButton.cleaning {
+            background-color: #ff4d4d;
+        }
+
+        #cleaningDustButton.dust {
+            background-color: #4CAF50;
+        }
+
         .slider-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 15px;
             margin-top: 30px;
         }
+
         .slider {
             -webkit-appearance: none;
-            width: 80%;
+            width: 100%;
             height: 15px;
             border-radius: 5px;
             background: #d3d3d3;
             outline: none;
             opacity: 0.7;
+            -webkit-transition: .2s;
             transition: opacity .2s;
         }
+
         .slider:hover {
             opacity: 1;
         }
+
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
@@ -73,6 +103,7 @@
             background: #4CAF50;
             cursor: pointer;
         }
+
         .slider::-moz-range-thumb {
             width: 25px;
             height: 25px;
@@ -80,49 +111,74 @@
             background: #4CAF50;
             cursor: pointer;
         }
+
         .slider-value {
-            margin-top: 10px;
-            font-size: 18px;
             color: #333;
+            font-size: 18px;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1><img src="https://sedulitas.com/wp-content/uploads/2019/09/Sedulitas_logo.png" alt="Sedulitas - People | Passion | Precision" style="max-width: 100%; height: auto;"></h1>
-        <button class="button" id="fanButton">Fan</button>
-        <button class="button" id="cleaningButton">Cleaning/Dust</button>
+        <img src="https://sedulitas.co.za/wp-content/uploads/2020/10/cropped-cropped-cropped-SedulitasLogoDesign-1.png" alt="Sedulitas - People | Passion | Precision" class="logo">
+        <div class="button-container">
+            <button class="button off" id="fanButton">Fan Off</button>
+            <button class="button dust" id="cleaningDustButton">Dust</button>
+        </div>
         <div class="slider-container">
-            <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
-            <div class="slider-value">Value: <span id="sliderValue">50</span></div>
+            <input type="range" min="0" max="255" value="0" class="slider" id="motorSlider">
+            <div class="slider-value">Motor Speed: <span id="sliderValue">0</span></div>
         </div>
     </div>
 
     <script>
-        const slider = document.getElementById("myRange");
-        const output = document.getElementById("sliderValue");
         const fanButton = document.getElementById("fanButton");
-        const cleaningButton = document.getElementById("cleaningButton");
+        const cleaningDustButton = document.getElementById("cleaningDustButton");
+        const motorSlider = document.getElementById("motorSlider");
+        const sliderValue = document.getElementById("sliderValue");
         
         // Replace with your ESP32's IP address
-        const esp32Address = "http://192.168.1.100";
-
-        slider.oninput = function() {
-            output.innerHTML = this.value;
-            fetch(`${esp32Address}/slider?value=${this.value}`)
-                .then(response => console.log('Slider value sent'))
-                .catch(error => console.error('Error:', error));
-        }
+        const esp32Address = "http://192.168.4.1";
 
         fanButton.onclick = function() {
             fetch(`${esp32Address}/fan`)
-                .then(response => console.log('Fan toggled'))
+                .then(response => response.text())
+                .then(state => {
+                    if (state === "1") {
+                        this.textContent = "Fan On";
+                        this.classList.remove("off");
+                        this.classList.add("on");
+                    } else {
+                        this.textContent = "Fan Off";
+                        this.classList.remove("on");
+                        this.classList.add("off");
+                    }
+                })
                 .catch(error => console.error('Error:', error));
         }
 
-        cleaningButton.onclick = function() {
-            fetch(`${esp32Address}/cleaning`)
-                .then(response => console.log('Cleaning toggled'))
+        cleaningDustButton.onclick = function() {
+            fetch(`${esp32Address}/cleaningDust`)
+                .then(response => response.text())
+                .then(state => {
+                    if (state === "1") {
+                        this.textContent = "Cleaning";
+                        this.classList.remove("dust");
+                        this.classList.add("cleaning");
+                    } else {
+                        this.textContent = "Dust";
+                        this.classList.remove("cleaning");
+                        this.classList.add("dust");
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        motorSlider.oninput = function() {
+            sliderValue.textContent = this.value;
+            fetch(`${esp32Address}/motorSpeed?value=${this.value}`)
+                .then(response => console.log('Motor speed sent'))
                 .catch(error => console.error('Error:', error));
         }
     </script>
